@@ -3,12 +3,14 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
      Rigidbody rb;
-     [SerializeField] float movementSpeed = 5f;
+     [SerializeField] float movementSpeed = 8f;
      float currentSpeed;
      Vector3 direction;
-     [SerializeField] float shiftSpeed = 10f;
-     [SerializeField] float jumpForce = 7f;
+     [SerializeField] float shiftSpeed = 20f;
+     [SerializeField] float jumpForce = 9f;
      bool isGrounded = true;
+     bool isCrouching = false;
+     public bool isRunning = false;
      [SerializeField] Animator anim;
 
 
@@ -31,12 +33,14 @@ public class Player : MonoBehaviour
           {
                if (Input.GetKey(KeyCode.LeftShift))
                {
+                    isRunning = true;
                     currentSpeed = shiftSpeed;
                     anim.SetBool("Run", true);
                     anim.SetBool("Walk", false);
                }
                else if (!Input.GetKey(KeyCode.LeftShift))
                {
+                    isRunning = false;
                     currentSpeed = movementSpeed;
                     anim.SetBool("Run", false);
                     anim.SetBool("Walk", true);
@@ -53,6 +57,24 @@ public class Player : MonoBehaviour
                isGrounded = false;
                anim.SetBool("Jump", true);
           }
+          
+          if (Input.GetKey(KeyCode.LeftControl) && isGrounded)
+          {
+               if (!isCrouching) // Evitamos llamar a SetBool cada frame innecesariamente
+               {
+                    isCrouching = true;
+                    anim.SetBool("Crouch", true);
+               }
+          }
+          else
+          {
+               if (isCrouching)
+               {
+                    isCrouching = false;
+                    anim.SetBool("Crouch", false);
+               }
+          }
+
 
           
           
