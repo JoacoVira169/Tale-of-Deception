@@ -24,11 +24,15 @@ public class Enemy : MonoBehaviour
 
     public void Awake()
     {
+        StartCoroutine(CalcularDistancia());
+    }
+
+    private void Start()
+    {
         if(autoseleccionarTarget) 
         {
-            target = GameObject.FindGameObjectWithTag("Player").transform;
+            target = Player.singelton.transform;
         }
-        StartCoroutine(CalcularDistancia());
     }
 
     private void LateUpdate()
@@ -44,6 +48,7 @@ public class Enemy : MonoBehaviour
                 EstadoIdle();
                 break;
             case Estados.seguir:
+                transform.LookAt(target, Vector3.up);
                 EstadoSeguir();
                 break;
             case Estados.atacar:

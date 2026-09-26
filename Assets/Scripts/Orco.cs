@@ -10,6 +10,7 @@ public class Orco : Enemy
     private Coroutine comboAtaque;
     private bool terminarCombo;
     public Animator animaciones;
+    public float daño = 3;
 
     void Awake()
     {
@@ -111,13 +112,30 @@ public class Orco : Enemy
     {
         animaciones.SetBool(nombreAtaque, true);
 
+        bool dañoAplicado = false;
         float tiempoLimite = 2f;
+
         while (tiempoLimite > 0f)
         {
             AnimatorStateInfo estadoAnimacion = animaciones.GetCurrentAnimatorStateInfo(0);
-            if (estadoAnimacion.IsName(nombreAtaque) && estadoAnimacion.normalizedTime >= 0.7f)
+
+            if (estadoAnimacion.IsName(nombreAtaque))
             {
-                break;
+                float tiempo = estadoAnimacion.normalizedTime;
+
+                if (!dañoAplicado && tiempo >= 0.35f && tiempo <= 0.65f)
+                {
+                    if (Player.singelton != null && Player.singelton.vida != null)
+                    {
+                        Player.singelton.vida.CausarDaño(daño);
+                    }
+                    dañoAplicado = true;
+                }
+
+                if (tiempo >= 0.7f)
+                {
+                    break;
+                }
             }
 
             tiempoLimite -= Time.deltaTime;
@@ -156,4 +174,6 @@ public class Orco : Enemy
         animaciones.SetBool("at2", false);
         animaciones.SetBool("at3", false);
     }
+
+   
 }

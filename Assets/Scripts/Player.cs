@@ -12,8 +12,21 @@ public class Player : MonoBehaviour
      bool isCrouching = false;
      public bool isRunning = false;
      [SerializeField] Animator anim;
-
-
+     public static Player singelton;
+     public Vida vida;
+     
+     
+     public void Awake()
+     {
+          if (singelton == null)
+          {
+              singelton = this; 
+          }
+          else
+          {
+              DestroyImmediate(this.gameObject); 
+          }
+     }
 
 
 
