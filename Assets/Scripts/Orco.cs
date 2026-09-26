@@ -12,7 +12,7 @@ public class Orco : Enemy
     public Animator animaciones;
     public float daño = 3;
 
-    void Awake()
+    public override void Awake()
     {
         base.Awake();
         agente = GetComponent<NavMeshAgent>();
@@ -112,25 +112,16 @@ public class Orco : Enemy
     {
         animaciones.SetBool(nombreAtaque, true);
 
-        bool dañoAplicado = false;
         float tiempoLimite = 2f;
 
         while (tiempoLimite > 0f)
         {
             AnimatorStateInfo estadoAnimacion = animaciones.GetCurrentAnimatorStateInfo(0);
+            string nombreEstado = char.ToUpperInvariant(nombreAtaque[0]) + nombreAtaque.Substring(1);
 
-            if (estadoAnimacion.IsName(nombreAtaque))
+            if (estadoAnimacion.IsName("Base Layer." + nombreEstado))
             {
                 float tiempo = estadoAnimacion.normalizedTime;
-
-                if (!dañoAplicado && tiempo >= 0.35f && tiempo <= 0.65f)
-                {
-                    if (Player.singelton != null && Player.singelton.vida != null)
-                    {
-                        Player.singelton.vida.CausarDaño(daño);
-                    }
-                    dañoAplicado = true;
-                }
 
                 if (tiempo >= 0.7f)
                 {

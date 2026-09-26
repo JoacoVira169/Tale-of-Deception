@@ -7,7 +7,7 @@ public class Vida : MonoBehaviour
 {
     public float vidaInicial;
     public float vidaActual;
-    public UnityEvent eventoMorir;
+    public UnityEvent eventoMorir = new UnityEvent();
 
     void Start()
     {
@@ -16,11 +16,16 @@ public class Vida : MonoBehaviour
 
     public void CausarDaño(float cuanto)
     {
-        vidaActual -= cuanto;
-        if (vidaActual <= 0)
+        if (vidaActual <= 0 || cuanto <= 0)
         {
-            print("Muerto!!! ->" + gameObject.name);
-            eventoMorir.Invoke();
+            return;
+        }
+
+        vidaActual = Mathf.Max(0, vidaActual - cuanto);
+        if (vidaActual == 0)
+        {
+            Debug.Log("Muerto!!! ->" + gameObject.name);
+            eventoMorir?.Invoke();
         }
     }
 

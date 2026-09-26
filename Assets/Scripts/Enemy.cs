@@ -22,16 +22,21 @@ public class Enemy : MonoBehaviour
     public float distancia;
     public bool vivo = true;
 
-    public void Awake()
+    public virtual void Awake()
     {
         StartCoroutine(CalcularDistancia());
     }
 
     private void Start()
     {
-        if(autoseleccionarTarget) 
+        if (autoseleccionarTarget && Player.singelton != null)
         {
             target = Player.singelton.transform;
+        }
+
+        if (target == null)
+        {
+            Debug.LogWarning("Enemy has no target assigned.", this);
         }
     }
 
@@ -42,6 +47,11 @@ public class Enemy : MonoBehaviour
 
     private void CheckEstado()
     {
+        if (target == null && estado != Estados.muerto)
+        {
+            return;
+        }
+
         switch (estado)
         {
             case Estados.idle:
@@ -118,8 +128,9 @@ public class Enemy : MonoBehaviour
             if(target != null)
             {
                 distancia = Vector3.Distance(transform.position, target.position);
-                yield return new WaitForSeconds(0.3f);
             }
+
+            yield return new WaitForSeconds(0.3f);
         }
     }
     

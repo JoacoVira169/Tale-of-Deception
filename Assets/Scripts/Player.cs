@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody), typeof(Vida))]
 public class Player : MonoBehaviour
 {
      Rigidbody rb;
@@ -22,9 +23,11 @@ public class Player : MonoBehaviour
           {
               singelton = this; 
           }
-          else
+                         else if (singelton != this)
           {
-              DestroyImmediate(this.gameObject); 
+                                   enabled = false;
+                                   Destroy(gameObject);
+                                   return;
           }
      }
 
@@ -34,7 +37,20 @@ public class Player : MonoBehaviour
      {
           rb = GetComponent<Rigidbody>();
           currentSpeed = movementSpeed;
-          anim = GetComponent<Animator>();
+          if (anim == null)
+          {
+               anim = GetComponentInChildren<Animator>();
+          }
+          if (vida == null)
+          {
+               vida = GetComponent<Vida>();
+          }
+          if (anim == null || rb == null || vida == null)
+          {
+               Debug.LogError("Player requires a Rigidbody, Animator, and Vida component.", this);
+               enabled = false;
+               return;
+          }
      }
 
      void Update()
