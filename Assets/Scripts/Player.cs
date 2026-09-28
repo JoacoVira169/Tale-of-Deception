@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 [RequireComponent(typeof(Rigidbody), typeof(Vida))]
 public class Player : MonoBehaviour
@@ -15,6 +16,7 @@ public class Player : MonoBehaviour
      [SerializeField] Animator anim;
      public static Player singelton;
      public Vida vida;
+     
      
      
      public void Awake()
@@ -123,5 +125,26 @@ public class Player : MonoBehaviour
      {
           isGrounded = true;
           anim.SetBool("Jump", false);
+     }
+     public void GolpeAnimacion(float cuanto)
+     {
+          Debug.Log("El jugador recibió " + cuanto + " de daño");
+
+          if (anim != null)
+          {
+               anim.SetBool("Damage", true);
+               StartCoroutine(EsperarYTerminarDaño());
+          }
+     }
+     private IEnumerator EsperarYTerminarDaño()
+     {
+          yield return new WaitForSeconds(1.5f);
+          TerminarAnimacionDaño();
+     }
+
+
+     public void TerminarAnimacionDaño()
+     {
+          anim.SetBool("Damage", false);
      }
 }

@@ -22,6 +22,11 @@ public class Vida : MonoBehaviour
         }
 
         vidaActual = Mathf.Max(0, vidaActual - cuanto);
+        gameObject.SendMessage(
+            "GolpeAnimacion",
+            cuanto,
+            SendMessageOptions.DontRequireReceiver
+        );
         if (vidaActual == 0)
         {
             Debug.Log("Muerto!!! ->" + gameObject.name);

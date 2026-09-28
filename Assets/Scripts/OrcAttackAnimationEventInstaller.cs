@@ -51,30 +51,47 @@ internal static class OrcAttackAnimationEventInstaller
                     continue;
                 }
 
+                bool primerOSegundoAtaque = path == ClipPaths[0] || path == ClipPaths[1];
+                float porcentajeApertura = primerOSegundoAtaque ? 0.3f : 0.4f;
+                float porcentajeCierre = primerOSegundoAtaque ? 0.7f : 0.62f;
+                float tiempoApertura = importedClip.length * porcentajeApertura;
+                float tiempoCierre = importedClip.length * porcentajeCierre;
                 AnimationEvent[] events = clip.events ?? new AnimationEvent[0];
-                if (!events.Any(item => item.functionName == "AbrirVentanaDeDaño"))
+                AnimationEvent eventoApertura = events.FirstOrDefault(item => item.functionName == "AbrirVentanaDeDaño");
+                if (eventoApertura == null)
                 {
                     events = events.Concat(new[]
                     {
                         new AnimationEvent
                         {
-                            time = importedClip.length * 0.4f,
+                            time = tiempoApertura,
                             functionName = "AbrirVentanaDeDaño"
                         }
                     }).ToArray();
                     changed = true;
                 }
+                else if (Mathf.Abs(eventoApertura.time - tiempoApertura) > 0.001f)
+                {
+                    eventoApertura.time = tiempoApertura;
+                    changed = true;
+                }
 
-                if (!events.Any(item => item.functionName == "CerrarVentanaDeDaño"))
+                AnimationEvent eventoCierre = events.FirstOrDefault(item => item.functionName == "CerrarVentanaDeDaño");
+                if (eventoCierre == null)
                 {
                     events = events.Concat(new[]
                     {
                         new AnimationEvent
                         {
-                            time = importedClip.length * 0.62f,
+                            time = tiempoCierre,
                             functionName = "CerrarVentanaDeDaño"
                         }
                     }).ToArray();
+                    changed = true;
+                }
+                else if (Mathf.Abs(eventoCierre.time - tiempoCierre) > 0.001f)
+                {
+                    eventoCierre.time = tiempoCierre;
                     changed = true;
                 }
 

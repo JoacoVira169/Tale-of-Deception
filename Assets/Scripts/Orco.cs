@@ -10,7 +10,7 @@ public class Orco : Enemy
     private Coroutine comboAtaque;
     private bool terminarCombo;
     public Animator animaciones;
-    public float daño = 3;
+    public float daño = 20;
 
     public override void Awake()
     {

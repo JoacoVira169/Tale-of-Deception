@@ -6,7 +6,7 @@ public class AxeHitbox : MonoBehaviour
     private Collider hitbox;
     private Orco orco;
     private readonly HashSet<int> jugadoresGolpeados = new HashSet<int>();
-    private bool ventanaActiva;
+    private string ataqueActivo;
 
     private void Awake()
     {
@@ -23,25 +23,34 @@ public class AxeHitbox : MonoBehaviour
         hitbox.enabled = false;
     }
 
+    private void Update()
+    {
+        ActualizarAtaqueActivo();
+    }
+
     public void AbrirVentanaDeDaño()
     {
-        jugadoresGolpeados.Clear();
-        ventanaActiva = true;
-        hitbox.enabled = true;
+        ActualizarAtaqueActivo();
     }
 
     public void CerrarVentanaDeDaño()
     {
-        ventanaActiva = false;
-        if (hitbox != null)
-        {
-            hitbox.enabled = false;
-        }
+        ActualizarAtaqueActivo();
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        IntentarCausarDaño(other);
     }
 
     private void OnTriggerStay(Collider other)
     {
-        if (!ventanaActiva)
+        IntentarCausarDaño(other);
+    }
+
+    private void IntentarCausarDaño(Collider other)
+    {
+        if (ataqueActivo == null)
         {
             return;
         }
@@ -62,8 +71,43 @@ public class AxeHitbox : MonoBehaviour
         vida.CausarDaño(daño);
     }
 
+    private void ActualizarAtaqueActivo()
+    {
+        string nuevoAtaque = ObtenerAtaqueActivo();
+        if (nuevoAtaque != ataqueActivo)
+        {
+            jugadoresGolpeados.Clear();
+            ataqueActivo = nuevoAtaque;
+        }
+
+        bool activarHitbox = ataqueActivo != null;
+        if (hitbox != null && hitbox.enabled != activarHitbox)
+        {
+            hitbox.enabled = activarHitbox;
+        }
+    }
+
+    private string ObtenerAtaqueActivo()
+    {
+        if (orco == null || orco.animaciones == null)
+        {
+            return null;
+        }
+
+        Animator animador = orco.animaciones;
+        if (animador.GetBool("at1")) return "at1";
+        if (animador.GetBool("at2")) return "at2";
+        if (animador.GetBool("at3")) return "at3";
+        return null;
+    }
+
     private void OnDisable()
     {
-        CerrarVentanaDeDaño();
+        ataqueActivo = null;
+        jugadoresGolpeados.Clear();
+        if (hitbox != null)
+        {
+            hitbox.enabled = false;
+        }
     }
 }

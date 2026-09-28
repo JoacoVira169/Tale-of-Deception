@@ -19,7 +19,10 @@ ModelImporter:
     rigImportErrors: 
     rigImportWarnings: 
     animationImportErrors: 
-    animationImportWarnings: 
+    animationImportWarnings: "Event AbrirVentanaDeDa\xF1o has a time (2265858.500000)
+      outside the clip's valid range (0.000000..3.166667). It will never be firedEvent
+      CerrarVentanaDeDa\xF1o has a time (5287002.500000) outside the clip's valid
+      range (0.000000..3.166667). It will never be fired"
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
@@ -57,14 +60,14 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 1.2666668
+      - time: 1586100.9
         functionName: "AbrirVentanaDeDa\xF1o"
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 1.9633334
+      - time: 3700901.8
         functionName: "CerrarVentanaDeDa\xF1o"
         data: 
         objectReferenceParameter: {instanceID: 0}
