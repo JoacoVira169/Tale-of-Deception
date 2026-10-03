@@ -67,7 +67,7 @@ public class AxeHitbox : MonoBehaviour
             return;
         }
 
-        float daño = orco != null ? orco.daño : 3f;
+        float daño = orco != null ? orco.daño : 10f;
         vida.CausarDaño(daño);
     }
 

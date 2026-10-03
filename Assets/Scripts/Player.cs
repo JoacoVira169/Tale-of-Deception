@@ -16,6 +16,7 @@ public class Player : MonoBehaviour
      [SerializeField] Animator anim;
      public static Player singelton;
      public Vida vida;
+     [SerializeField] public float damage = 15f;
      
      
      
@@ -128,7 +129,7 @@ public class Player : MonoBehaviour
      }
      public void GolpeAnimacion(float cuanto)
      {
-          Debug.Log("El jugador recibió " + cuanto + " de daño");
+          Debug.Log("GolpeAnimacion");
 
           if (anim != null)
           {

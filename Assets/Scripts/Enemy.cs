@@ -21,6 +21,7 @@ public class Enemy : MonoBehaviour
     public Transform target;
     public float distancia;
     public bool vivo = true;
+    public VidaOrco vidaOrco; 
 
     public virtual void Awake()
     {
