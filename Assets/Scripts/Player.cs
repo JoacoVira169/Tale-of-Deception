@@ -128,6 +128,7 @@ public class Player : MonoBehaviour
           isGrounded = true;
           anim.SetBool("Jump", false);
      }
+     
      public void GolpeAnimacion(float cuanto)
      {
           Debug.Log("GolpeAnimacion");
@@ -150,4 +151,5 @@ public class Player : MonoBehaviour
           anim.SetBool("Damage", false);
           isStunned = false;
      }
+     
 }

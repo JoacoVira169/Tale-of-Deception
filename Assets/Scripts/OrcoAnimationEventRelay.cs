@@ -3,10 +3,13 @@ using UnityEngine;
 public class OrcoAnimationEventRelay : MonoBehaviour
 {
     private AxeHitbox hacha;
+    private Orco orco;
 
     private void Awake()
     {
-        hacha = transform.root.GetComponentInChildren<AxeHitbox>(true);
+        Transform raiz = transform.root;
+        hacha = raiz.GetComponentInChildren<AxeHitbox>(true);
+        orco = raiz.GetComponentInChildren<Orco>(true);
         if (hacha == null)
         {
             Debug.LogError("No se encontro AxeHitbox en la jerarquia del orco.", this);
@@ -26,6 +29,14 @@ public class OrcoAnimationEventRelay : MonoBehaviour
         if (hacha != null)
         {
             hacha.CerrarVentanaDeDaño();
+        }
+    }
+
+    public void TerminarAnimacionDaño()
+    {
+        if (orco != null)
+        {
+            orco.TerminarAnimacionDaño();
         }
     }
 }

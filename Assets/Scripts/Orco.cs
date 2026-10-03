@@ -11,6 +11,10 @@ public class Orco : Enemy
     private bool terminarCombo;
     public Animator animaciones;
     public float daño = 20;
+    private string ataqueInterrumpido;
+    private static readonly int At1Hash = Animator.StringToHash("At1");
+    private static readonly int At2Hash = Animator.StringToHash("At2");
+    private static readonly int At3Hash = Animator.StringToHash("At3");
     
 
     public override void Awake()
@@ -38,7 +42,7 @@ public class Orco : Enemy
         agente.SetDestination(transform.position);
     }
 
-    /*
+    
     public override void EstadoSeguir()
     {
         base.EstadoSeguir();
@@ -169,6 +173,54 @@ public class Orco : Enemy
         animaciones.SetBool("at2", false);
         animaciones.SetBool("at3", false);
     }
-    */
-   
+    
+    public void GolpeOrco(float damage)
+    {
+        if (animaciones == null || animaciones.GetBool("orcdamage"))
+        {
+            return;
+        }
+
+        ataqueInterrumpido = ObtenerAtaqueActual();
+        animaciones.SetBool("at1", false);
+        animaciones.SetBool("at2", false);
+        animaciones.SetBool("at3", false);
+        animaciones.SetBool("orcdamage", true);
+    }
+
+    public void TerminarAnimacionDaño()
+    {
+        if (animaciones == null)
+        {
+            return;
+        }
+
+        animaciones.SetBool("at1", ataqueInterrumpido == "at1");
+        animaciones.SetBool("at2", ataqueInterrumpido == "at2");
+        animaciones.SetBool("at3", ataqueInterrumpido == "at3");
+        animaciones.SetBool("orcdamage", false);
+        ataqueInterrumpido = null;
+    }
+
+    private string ObtenerAtaqueActual()
+    {
+        if (animaciones.IsInTransition(0))
+        {
+            string ataqueSiguiente = ObtenerAtaque(animaciones.GetNextAnimatorStateInfo(0));
+            if (ataqueSiguiente != null)
+            {
+                return ataqueSiguiente;
+            }
+        }
+
+        return ObtenerAtaque(animaciones.GetCurrentAnimatorStateInfo(0));
+    }
+
+    private string ObtenerAtaque(AnimatorStateInfo estadoAnimacion)
+    {
+        if (estadoAnimacion.shortNameHash == At1Hash) return "at1";
+        if (estadoAnimacion.shortNameHash == At2Hash) return "at2";
+        if (estadoAnimacion.shortNameHash == At3Hash) return "at3";
+        return null;
+    }
 }
