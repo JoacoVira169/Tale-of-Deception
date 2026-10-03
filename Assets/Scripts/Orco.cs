@@ -38,6 +38,7 @@ public class Orco : Enemy
         agente.SetDestination(transform.position);
     }
 
+    /*
     public override void EstadoSeguir()
     {
         base.EstadoSeguir();
@@ -59,6 +60,7 @@ public class Orco : Enemy
         animaciones.SetFloat("velocidad", 1f);
     }
 
+    
     public override void EstadoAtacar()
     {
         base.EstadoAtacar();
@@ -89,6 +91,7 @@ public class Orco : Enemy
         agente.enabled = false;
     }
 
+    
     private IEnumerator EjecutarCombo()
     {
         terminarCombo = false;
@@ -166,6 +169,6 @@ public class Orco : Enemy
         animaciones.SetBool("at2", false);
         animaciones.SetBool("at3", false);
     }
-
+    */
    
 }

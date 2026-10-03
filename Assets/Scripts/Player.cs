@@ -17,6 +17,7 @@ public class Player : MonoBehaviour
      public static Player singelton;
      public Vida vida;
      [SerializeField] public float damage = 15f;
+     bool isStunned;
      
      
      
@@ -109,11 +110,11 @@ public class Player : MonoBehaviour
                }
           }
 
-
-          
-          
-
-
+          if (isStunned)
+          {
+               direction = Vector3.zero;
+               return;
+          }
      }
 
      void FixedUpdate()
@@ -147,5 +148,6 @@ public class Player : MonoBehaviour
      public void TerminarAnimacionDaño()
      {
           anim.SetBool("Damage", false);
+          isStunned = false;
      }
 }

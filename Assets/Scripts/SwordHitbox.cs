@@ -3,17 +3,25 @@ using UnityEngine;
 
 public class SwordHitbox : MonoBehaviour
 {
-    private Collider hitbox;
+    [SerializeField] private Collider hitbox;
     private Animator animador;
     private Player jugador;
     private readonly HashSet<int> enemigosGolpeados = new HashSet<int>();
     private readonly HashSet<int> collidersSinVida = new HashSet<int>();
     private string ataqueActivo;
     private bool controlarVentanaPorEventos;
+    private bool colliderEnHijo;
 
     private void Awake()
     {
-        hitbox = GetComponent<Collider>();
+        if (hitbox == null)
+        {
+            hitbox = GetComponent<Collider>();
+        }
+        if (hitbox == null)
+        {
+            hitbox = GetComponentInChildren<Collider>(true);
+        }
         animador = GetComponentInParent<Animator>();
         jugador = GetComponentInParent<Player>();
 
@@ -39,7 +47,18 @@ public class SwordHitbox : MonoBehaviour
         }
 
         hitbox.isTrigger = true;
-        hitbox.enabled = false;
+        hitbox.enabled = true;
+
+        colliderEnHijo = hitbox.gameObject != gameObject;
+        if (colliderEnHijo)
+        {
+            SwordHitboxTriggerRelay relay = hitbox.GetComponent<SwordHitboxTriggerRelay>();
+            if (relay == null)
+            {
+                relay = hitbox.gameObject.AddComponent<SwordHitboxTriggerRelay>();
+            }
+            relay.SetOwner(this);
+        }
     }
 
     private void Update()
@@ -52,10 +71,6 @@ public class SwordHitbox : MonoBehaviour
         controlarVentanaPorEventos = true;
         ataqueActivo = "evento";
         enemigosGolpeados.Clear();
-        if (hitbox != null)
-        {
-            hitbox.enabled = true;
-        }
     }
 
     public void CerrarVentanaDeDañoPlayer()
@@ -63,48 +78,63 @@ public class SwordHitbox : MonoBehaviour
         controlarVentanaPorEventos = true;
         ataqueActivo = null;
         enemigosGolpeados.Clear();
-        if (hitbox != null)
-        {
-            hitbox.enabled = false;
-        }
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider Enemy)
     {
-        IntentarCausarDaño(other);
+        if (colliderEnHijo) return;
+        ProcesarTriggerEnter(Enemy);
     }
 
-    private void OnTriggerStay(Collider other)
+    internal void ProcesarTriggerEnter(Collider Enemy)
     {
-        IntentarCausarDaño(other);
+        Debug.Log($"SwordHitbox detectó '{Enemy.name}'. Ataque activo: {ataqueActivo ?? "ninguno"}.", Enemy);
+        IntentarCausarDaño(Enemy);
     }
 
-    private void IntentarCausarDaño(Collider other)
+    private void OnTriggerStay(Collider Enemy)
     {
-        if (string.IsNullOrEmpty(ataqueActivo) || other == null)
+        if (colliderEnHijo) return;
+        ProcesarTriggerStay(Enemy);
+    }
+
+    internal void ProcesarTriggerStay(Collider Enemy)
+    {
+        IntentarCausarDaño(Enemy);
+    }
+
+    private void IntentarCausarDaño(Collider Enemy)
+    {
+        if (string.IsNullOrEmpty(ataqueActivo) || Enemy == null)
         {
             return;
         }
 
-        if (other.transform.root == transform.root)
+        if (!TieneEtiquetaEnemy(Enemy.transform))
+        {
+            Debug.Log($"'{Enemy.name}' no tiene la etiqueta Enemy en sí mismo ni en sus padres.", Enemy);
+            return;
+        }
+
+        if (Enemy.transform.IsChildOf(jugador.transform))
         {
             return;
         }
 
-        VidaOrco vidaOrco = other.GetComponentInParent<VidaOrco>();
+        VidaOrco vidaOrco = Enemy.GetComponentInParent<VidaOrco>();
         if (vidaOrco == null)
         {
-            vidaOrco = other.transform.root.GetComponentInChildren<VidaOrco>();
+            vidaOrco = Enemy.transform.root.GetComponentInChildren<VidaOrco>();
         }
 
         if (vidaOrco == null)
         {
-            int colliderId = other.GetInstanceID();
+            int colliderId = Enemy.GetInstanceID();
             if (collidersSinVida.Add(colliderId))
             {
                 Debug.LogWarning(
-                    $"El collider '{other.name}' no encuentra VidaOrco en sus padres ni en la raíz del enemigo.",
-                    other
+                    $"El collider '{Enemy.name}' no encuentra VidaOrco en sus padres ni en la raíz del enemigo.",
+                    Enemy
                 );
             }
             return;
@@ -116,7 +146,24 @@ public class SwordHitbox : MonoBehaviour
             return;
         }
 
+        float vidaAntes = vidaOrco.vidaActualOrco;
         vidaOrco.CausarDañoO(jugador.damage);
+        Debug.Log($"Golpe aplicado a '{vidaOrco.name}': {vidaAntes} -> {vidaOrco.vidaActualOrco}.", vidaOrco);
+    }
+
+    private bool TieneEtiquetaEnemy(Transform objetivo)
+    {
+        while (objetivo != null)
+        {
+            if (objetivo.CompareTag("Enemy"))
+            {
+                return true;
+            }
+
+            objetivo = objetivo.parent;
+        }
+
+        return false;
     }
 
     private void ActualizarAtaqueActivo()
@@ -138,11 +185,6 @@ public class SwordHitbox : MonoBehaviour
             collidersSinVida.Clear();
         }
 
-        bool activarHitbox = ataqueActivo != null;
-        if (hitbox != null)
-        {
-            hitbox.enabled = activarHitbox;
-        }
     }
 
     private void OnDisable()
