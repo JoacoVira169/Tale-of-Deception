@@ -15,12 +15,30 @@ public class Orco : Enemy
     private static readonly int At1Hash = Animator.StringToHash("At1");
     private static readonly int At2Hash = Animator.StringToHash("At2");
     private static readonly int At3Hash = Animator.StringToHash("At3");
+    public Transform[] CheckPoints;
+    private int indice;
+    private int direccionPatrulla = 1;
+    private int ultimoCheckpointAvanzado = -1;
+    public float distanciaCheckpoints;
+    private float distanciaCheckpoints2;
     
 
     public override void Awake()
     {
         base.Awake();
         agente = GetComponent<NavMeshAgent>();
+
+        agente.autoTraverseOffMeshLink = true;
+        agente.autoRepath = true;
+        agente.updateRotation = true;
+        agente.updateUpAxis = true;
+
+        distanciaCheckpoints2 = Mathf.Max(distanciaCheckpoints * distanciaCheckpoints, 0.25f);
+        if (CheckPoints != null && CheckPoints.Length > 0)
+        {
+            indice = 0;
+            agente.SetDestination(CheckPoints[indice].position);
+        }
     }
 
     private void Update()
@@ -30,29 +48,81 @@ public class Orco : Enemy
 
     public override void EstadoIdle()
     {
-        base.EstadoIdle();
-
         if (estado != Estados.idle)
         {
             return;
         }
 
-        animaciones.SetFloat("velocidad", 0f);
-        agente.isStopped = true;
-        agente.SetDestination(transform.position);
+        if (CheckPoints == null || CheckPoints.Length == 0)
+        {
+            return;
+        }
+
+        if (target != null && distancia < distanciaSeguir)
+        {
+            CambiarEstado(Estados.seguir);
+            return;
+        }
+
+        animaciones.SetFloat("velocidad", 1f);
+
+        NavMeshPathStatus estadoRuta = agente.pathStatus;
+        if (estadoRuta == NavMeshPathStatus.PathInvalid || estadoRuta == NavMeshPathStatus.PathPartial)
+        {
+            indice = (indice + 1) % CheckPoints.Length;
+            agente.SetDestination(CheckPoints[indice].position);
+            return;
+        }
+
+        Vector3 destinoActual = CheckPoints[indice].position;
+        float distanciaAlObjetivo = Vector3.Distance(transform.position, destinoActual);
+
+        bool llegoAlCheckpoint = !agente.pathPending && agente.remainingDistance <= Mathf.Max(distanciaCheckpoints, 0.5f)
+            && agente.velocity.sqrMagnitude <= 0.01f;
+
+        if (llegoAlCheckpoint && ultimoCheckpointAvanzado != indice)
+        {
+            ultimoCheckpointAvanzado = indice;
+            indice = (indice + 1) % CheckPoints.Length;
+            agente.SetDestination(CheckPoints[indice].position);
+            return;
+        }
+
+        if (distanciaAlObjetivo <= Mathf.Max(distanciaCheckpoints, 0.5f) && ultimoCheckpointAvanzado != indice)
+        {
+            ultimoCheckpointAvanzado = indice;
+            indice = (indice + 1) % CheckPoints.Length;
+        }
+
+        agente.SetDestination(CheckPoints[indice].position);
     }
 
     
     public override void EstadoSeguir()
     {
-        base.EstadoSeguir();
-
         if (estado != Estados.seguir)
         {
             return;
         }
 
-        agente.isStopped = false;
+        if (target == null)
+        {
+            CambiarEstado(Estados.idle);
+            return;
+        }
+
+        if (distancia <= distanciaAtacar)
+        {
+            CambiarEstado(Estados.atacar);
+            return;
+        }
+
+        if (distancia > distanciaEscapar)
+        {
+            CambiarEstado(Estados.idle);
+            return;
+        }
+
         agente.SetDestination(target.position);
 
         if (comboAtaque != null)
@@ -67,9 +137,18 @@ public class Orco : Enemy
     
     public override void EstadoAtacar()
     {
-        base.EstadoAtacar();
+        if (estado != Estados.atacar)
+        {
+            return;
+        }
 
-        if (distancia > distanciaAtacar)
+        if (target == null)
+        {
+            CambiarEstado(Estados.idle);
+            return;
+        }
+
+        if (distancia > distanciaAtacar + 0.4f)
         {
             CambiarEstado(Estados.seguir);
             SolicitarFinCombo();
@@ -77,7 +156,6 @@ public class Orco : Enemy
         }
 
         animaciones.SetFloat("velocidad", 0f);
-        agente.isStopped = true;
         agente.SetDestination(transform.position);
         transform.LookAt(target, Vector3.up);
 

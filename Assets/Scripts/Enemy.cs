@@ -19,12 +19,14 @@ public class Enemy : MonoBehaviour
 
     public bool autoseleccionarTarget = true;
     public Transform target;
-    public float distancia;
+    public float distancia = Mathf.Infinity;
     public bool vivo = true;
     public VidaOrco vidaOrco; 
 
     public virtual void Awake()
     {
+        estado = Estados.idle;
+        distancia = Mathf.Infinity;
         StartCoroutine(CalcularDistancia());
     }
 
@@ -49,6 +51,11 @@ public class Enemy : MonoBehaviour
     private void CheckEstado()
     {
         if (target == null && estado != Estados.muerto)
+        {
+            return;
+        }
+
+        if (float.IsInfinity(distancia))
         {
             return;
         }
@@ -94,28 +101,12 @@ public class Enemy : MonoBehaviour
 
     public virtual void EstadoIdle()
     {
-        if (distancia < distanciaSeguir)
-        {
-            CambiarEstado(Estados.seguir);
-        }
     }
     public virtual void EstadoSeguir()
     {
-        if (distancia < distanciaAtacar)
-        {
-            CambiarEstado(Estados.atacar);
-        }
-        else if (distancia > distanciaEscapar)
-        {
-            CambiarEstado(Estados.idle);
-        }
     }
     public virtual void EstadoAtacar()
     {
-        if (distancia > distanciaAtacar + 0.4f)
-        {
-            CambiarEstado(Estados.seguir);
-        }
     }
     public virtual void EstadoMuerto()
     {
@@ -126,9 +117,13 @@ public class Enemy : MonoBehaviour
     {
         while (vivo)
         {
-            if(target != null)
+            if (target != null)
             {
                 distancia = Vector3.Distance(transform.position, target.position);
+            }
+            else
+            {
+                distancia = Mathf.Infinity;
             }
 
             yield return new WaitForSeconds(0.3f);
