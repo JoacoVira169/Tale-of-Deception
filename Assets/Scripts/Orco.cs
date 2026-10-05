@@ -67,12 +67,7 @@ public class Orco : Enemy
         animaciones.SetFloat("velocidad", 1f);
 
         NavMeshPathStatus estadoRuta = agente.pathStatus;
-        if (estadoRuta == NavMeshPathStatus.PathInvalid || estadoRuta == NavMeshPathStatus.PathPartial)
-        {
-            indice = (indice + 1) % CheckPoints.Length;
-            agente.SetDestination(CheckPoints[indice].position);
-            return;
-        }
+        
 
         Vector3 destinoActual = CheckPoints[indice].position;
         float distanciaAlObjetivo = Vector3.Distance(transform.position, destinoActual);

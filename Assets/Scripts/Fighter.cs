@@ -6,7 +6,7 @@ public class Fighter : MonoBehaviour
 {
     private Animator anim;
     private Player player;
-    private int noOfClicks;
+    public int noOfClicks;
     private int processedStateHash;
     private bool comboWindowProcessed;
     private bool impactoProcesado;

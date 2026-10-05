@@ -18,6 +18,7 @@ public class Player : MonoBehaviour
      public Vida vida;
      [SerializeField] public float damage = 15f;
      bool isStunned;
+     public int noOfClicks;
      
      
      
@@ -59,6 +60,28 @@ public class Player : MonoBehaviour
 
      void Update()
      {
+          if (Input.GetMouseButtonUp(1))
+          {
+               anim.SetBool("Block", false);
+          }
+
+          if (Input.GetMouseButtonDown(1))
+          {
+               isBlocking();
+          }
+
+          AnimatorStateInfo attackState = anim.GetCurrentAnimatorStateInfo(0);
+          bool isAttacking = anim.GetBool("hit1") || anim.GetBool("hit2") || anim.GetBool("hit3") ||
+                             attackState.IsName("hit1") || attackState.IsName("hit2") || attackState.IsName("hit3");
+          bool actionLocksMovement = isStunned || isAttacking || anim.GetBool("Block") || anim.GetBool("Damage");
+          if (actionLocksMovement)
+          {
+               direction = Vector3.zero;
+               anim.SetBool("Walk", false);
+               anim.SetBool("Run", false);
+               return;
+          }
+
           float moveHorizontal = Input.GetAxis("Horizontal");
           float moveVertical = Input.GetAxis("Vertical");
 
@@ -110,11 +133,6 @@ public class Player : MonoBehaviour
                }
           }
 
-          if (isStunned)
-          {
-               direction = Vector3.zero;
-               return;
-          }
      }
 
      void FixedUpdate()
@@ -150,6 +168,41 @@ public class Player : MonoBehaviour
      {
           anim.SetBool("Damage", false);
           isStunned = false;
+     }
+     
+     public void isBlocking()
+     {
+          if (anim.GetBool("Walk") == true)
+          {
+               anim.SetBool("Walk", false);
+               anim.SetBool("Block", true);
+          }
+          else if (anim.GetBool("Run") == true)
+          {
+               anim.SetBool("Run", false);
+               anim.SetBool("Block", true);
+          }
+               
+          else if (anim.GetBool("Damage") == true)
+          {
+               StartCoroutine(EsperarYTerminarDaño());
+          }
+          else if (anim.GetBool("hit1") == true || anim.GetBool("hit2") == true || anim.GetBool("hit3") == true)
+          {
+               noOfClicks = 0;
+               Fighter fighter = GetComponentInChildren<Fighter>();
+               if (fighter != null)
+               {
+                    fighter.noOfClicks = 0;
+               }
+               anim.SetBool("hit1", false);
+               anim.SetBool("hit2", false);
+               anim.SetBool("hit3", false);
+          }
+
+          anim.SetBool("Block", true);
+
+          
      }
      
 }
