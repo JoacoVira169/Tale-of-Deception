@@ -19,20 +19,24 @@ public class Player : MonoBehaviour
      [SerializeField] public float damage = 15f;
      bool isStunned;
      public int noOfClicks;
-     
-     
-     
+     PlayerAudio playerAudio;
+     private float temporizadorPasos = 0f;
+     public float tiempoEntrePasosCaminando = 0.5f;
+     public float tiempoEntrePasosCorriendo = 0.3f;
+
+
+
      public void Awake()
      {
           if (singelton == null)
           {
-              singelton = this; 
+               singelton = this;
           }
-                         else if (singelton != this)
+          else if (singelton != this)
           {
-                                   enabled = false;
-                                   Destroy(gameObject);
-                                   return;
+               enabled = false;
+               Destroy(gameObject);
+               return;
           }
      }
 
@@ -41,6 +45,7 @@ public class Player : MonoBehaviour
      void Start()
      {
           rb = GetComponent<Rigidbody>();
+          playerAudio = GetComponent<PlayerAudio>();
           currentSpeed = movementSpeed;
           if (anim == null)
           {
@@ -58,8 +63,11 @@ public class Player : MonoBehaviour
           }
      }
 
+
      void Update()
      {
+          temporizadorPasos -= Time.deltaTime;
+
           if (Input.GetMouseButtonUp(1))
           {
                anim.SetBool("Block", false);
@@ -74,11 +82,18 @@ public class Player : MonoBehaviour
           bool isAttacking = anim.GetBool("hit1") || anim.GetBool("hit2") || anim.GetBool("hit3") ||
                              attackState.IsName("hit1") || attackState.IsName("hit2") || attackState.IsName("hit3");
           bool actionLocksMovement = isStunned || isAttacking || anim.GetBool("Block") || anim.GetBool("Damage");
+
           if (actionLocksMovement)
           {
                direction = Vector3.zero;
                anim.SetBool("Walk", false);
                anim.SetBool("Run", false);
+               isRunning = false;
+               temporizadorPasos = 0f;
+               if (playerAudio != null)
+               {
+                    playerAudio.DetenerPasos();
+               }
                return;
           }
 
@@ -87,52 +102,81 @@ public class Player : MonoBehaviour
 
           direction = new Vector3(moveHorizontal, 0.0f, moveVertical);
           direction = transform.TransformDirection(direction);
-          if (direction.x != 0 || direction.z != 0)
-          {
-               if (Input.GetKey(KeyCode.LeftShift))
-               {
-                    isRunning = true;
-                    currentSpeed = shiftSpeed;
-                    anim.SetBool("Run", true);
-                    anim.SetBool("Walk", false);
-               }
-               else if (!Input.GetKey(KeyCode.LeftShift))
-               {
-                    isRunning = false;
-                    currentSpeed = movementSpeed;
-                    anim.SetBool("Run", false);
-                    anim.SetBool("Walk", true);
-               }
-          }
-          else if (direction.x == 0 && direction.z == 0)
-          {
-               anim.SetBool("Walk", false);
-          }
 
           if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
           {
                rb.AddForce(new Vector3(0, jumpForce, 0), ForceMode.Impulse);
                isGrounded = false;
                anim.SetBool("Jump", true);
+               if (playerAudio != null)
+               {
+                    playerAudio.ReproducirSalto();
+               }
           }
-          
+
           if (Input.GetKey(KeyCode.LeftControl) && isGrounded)
           {
-               if (!isCrouching) // Evitamos llamar a SetBool cada frame innecesariamente
+               if (!isCrouching)
                {
                     isCrouching = true;
                     anim.SetBool("Crouch", true);
                }
           }
-          else
+          else if (isCrouching)
           {
-               if (isCrouching)
-               {
-                    isCrouching = false;
-                    anim.SetBool("Crouch", false);
-               }
+               isCrouching = false;
+               anim.SetBool("Crouch", false);
           }
 
+          bool hasMovement = direction.sqrMagnitude > 0.01f;
+          if (hasMovement && isGrounded)
+          {
+               bool isSprinting = Input.GetKey(KeyCode.LeftShift) && !isCrouching;
+               isRunning = isSprinting;
+
+               if (isSprinting)
+               {
+                    currentSpeed = shiftSpeed;
+                    anim.SetBool("Run", true);
+                    anim.SetBool("Walk", false);
+               }
+               else
+               {
+                    currentSpeed = movementSpeed;
+                    anim.SetBool("Run", false);
+                    anim.SetBool("Walk", true);
+               }
+
+               if (temporizadorPasos <= 0f && playerAudio != null)
+               {
+                    if (isCrouching)
+                    {
+                         playerAudio.ReproducirPasoAgachado();
+                         temporizadorPasos = tiempoEntrePasosCaminando;
+                    }
+                    else if (isSprinting)
+                    {
+                         playerAudio.ReproducirPasoCorriendo();
+                         temporizadorPasos = tiempoEntrePasosCorriendo;
+                    }
+                    else
+                    {
+                         playerAudio.ReproducirPasoCaminando();
+                         temporizadorPasos = tiempoEntrePasosCaminando;
+                    }
+               }
+          }
+          else
+          {
+               isRunning = false;
+               anim.SetBool("Walk", false);
+               anim.SetBool("Run", false);
+               temporizadorPasos = 0f;
+               if (playerAudio != null)
+               {
+                    playerAudio.DetenerPasos();
+               }
+          }
      }
 
      void FixedUpdate()
@@ -143,16 +187,33 @@ public class Player : MonoBehaviour
 
      void OnCollisionEnter(Collision collision)
      {
-          isGrounded = true;
-          anim.SetBool("Jump", false);
+          foreach (ContactPoint contact in collision.contacts)
+          {
+               if (contact.normal.y > 0.5f)
+               {
+                    if (!isGrounded && playerAudio != null)
+                    {
+                         playerAudio.ReproducirAterrizaje();
+                    }
+
+                    isGrounded = true;
+                    anim.SetBool("Jump", false);
+                    break;
+               }
+          }
      }
-     
+
      public void GolpeAnimacion(float cuanto)
      {
           Debug.Log("GolpeAnimacion");
 
           if (anim != null)
           {
+               if (playerAudio != null)
+               {
+                    playerAudio.ReproducirDaño();
+               }
+
                anim.SetBool("Damage", true);
                StartCoroutine(EsperarYTerminarDaño());
           }
@@ -169,7 +230,7 @@ public class Player : MonoBehaviour
           anim.SetBool("Damage", false);
           isStunned = false;
      }
-     
+
      public void isBlocking()
      {
           if (anim.GetBool("Walk") == true)
@@ -182,7 +243,7 @@ public class Player : MonoBehaviour
                anim.SetBool("Run", false);
                anim.SetBool("Block", true);
           }
-               
+
           else if (anim.GetBool("Damage") == true)
           {
                StartCoroutine(EsperarYTerminarDaño());
@@ -202,7 +263,7 @@ public class Player : MonoBehaviour
 
           anim.SetBool("Block", true);
 
-          
+
      }
-     
+
 }

@@ -6,10 +6,12 @@ public class Fighter : MonoBehaviour
 {
     private Animator anim;
     private Player player;
+    private PlayerAudio playerAudio;
     public int noOfClicks;
     private int processedStateHash;
     private bool comboWindowProcessed;
     private bool impactoProcesado;
+    private bool sonidoImpactoProcesado;
     private readonly HashSet<int> enemigosGolpeados = new HashSet<int>();
     private const float comboTransitionTime = 0.7f;
     [SerializeField, Range(0f, 1f)] private float momentoImpacto = 0.35f;
@@ -28,6 +30,11 @@ public class Fighter : MonoBehaviour
         if (player == null)
         {
             player = GetComponent<Player>();
+        }
+
+        if (player != null)
+        {
+            playerAudio = player.GetComponent<PlayerAudio>();
         }
 
         if (anim == null || player == null)
@@ -52,6 +59,7 @@ public class Fighter : MonoBehaviour
             processedStateHash = state.fullPathHash;
             comboWindowProcessed = false;
             impactoProcesado = false;
+            sonidoImpactoProcesado = false;
             enemigosGolpeados.Clear();
         }
 
@@ -74,6 +82,7 @@ public class Fighter : MonoBehaviour
             {
                 anim.SetBool("hit1", false);
                 anim.SetBool("hit2", true);
+                ReproducirSonidoAtaque();
             }
             else
             {
@@ -87,6 +96,7 @@ public class Fighter : MonoBehaviour
             {
                 anim.SetBool("hit2", false);
                 anim.SetBool("hit3", true);
+                ReproducirSonidoAtaque();
             }
             else
             {
@@ -144,6 +154,14 @@ public class Fighter : MonoBehaviour
             if (enemigosGolpeados.Add(vidaOrco.GetInstanceID()))
             {
                 vidaOrco.CausarDañoO(player.damage);
+                if (player.damage > 0f && !sonidoImpactoProcesado)
+                {
+                    sonidoImpactoProcesado = true;
+                    if (playerAudio != null)
+                    {
+                        playerAudio.ReproducirImpactoOrco();
+                    }
+                }
             }
         }
     }
@@ -154,12 +172,21 @@ public class Fighter : MonoBehaviour
         {
             noOfClicks = 1;
             anim.SetBool("hit1", true);
+            ReproducirSonidoAtaque();
             return;
         }
 
         if (noOfClicks < 3)
         {
             noOfClicks++;
+        }
+    }
+
+    private void ReproducirSonidoAtaque()
+    {
+        if (playerAudio != null)
+        {
+            playerAudio.ReproducirGolpeEspada();
         }
     }
 }
