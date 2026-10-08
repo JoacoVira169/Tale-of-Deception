@@ -69,6 +69,10 @@ public class AxeHitbox : MonoBehaviour
 
         float daño = orco != null ? orco.daño : 10f;
         vida.CausarDaño(daño);
+        if (orco != null)
+        {
+            orco.ReproducirImpactoPlayer();
+        }
     }
 
     private void ActualizarAtaqueActivo()

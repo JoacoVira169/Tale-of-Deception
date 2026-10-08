@@ -7,8 +7,10 @@ using UnityEngine.AI;
 public class Orco : Enemy
 {
     private NavMeshAgent agente;
+    private OrcoAudio audioOrco;
     private Coroutine comboAtaque;
     private bool terminarCombo;
+    private float temporizadorPasos;
     public Animator animaciones;
     public float daño = 20;
     private string ataqueInterrumpido;
@@ -27,6 +29,7 @@ public class Orco : Enemy
     {
         base.Awake();
         agente = GetComponent<NavMeshAgent>();
+        audioOrco = GetComponent<OrcoAudio>();
 
         agente.autoTraverseOffMeshLink = true;
         agente.autoRepath = true;
@@ -44,6 +47,7 @@ public class Orco : Enemy
     private void Update()
     {
         animaciones.SetFloat("distancia", distancia);
+        temporizadorPasos -= Time.deltaTime;
     }
 
     public override void EstadoIdle()
@@ -65,6 +69,7 @@ public class Orco : Enemy
         }
 
         animaciones.SetFloat("velocidad", 1f);
+        ActualizarPasos(false);
 
         NavMeshPathStatus estadoRuta = agente.pathStatus;
         
@@ -123,10 +128,12 @@ public class Orco : Enemy
         if (comboAtaque != null)
         {
             animaciones.SetFloat("velocidad", 0f);
+            DetenerPasos();
             return;
         }
 
         animaciones.SetFloat("velocidad", 1f);
+        ActualizarPasos(true);
     }
 
     
@@ -151,6 +158,7 @@ public class Orco : Enemy
         }
 
         animaciones.SetFloat("velocidad", 0f);
+        DetenerPasos();
         agente.SetDestination(transform.position);
         transform.LookAt(target, Vector3.up);
 
@@ -164,6 +172,7 @@ public class Orco : Enemy
     {
         base.EstadoMuerto();
         CancelarCombo();
+        DetenerPasos();
         animaciones.SetBool("vivo", false);
         agente.enabled = false;
     }
@@ -192,6 +201,10 @@ public class Orco : Enemy
     private IEnumerator EjecutarAtaque(string nombreAtaque)
     {
         animaciones.SetBool(nombreAtaque, true);
+        if (audioOrco != null)
+        {
+            audioOrco.ReproducirGolpeHacha();
+        }
 
         float tiempoLimite = 2f;
 
@@ -254,6 +267,11 @@ public class Orco : Enemy
             return;
         }
 
+        if (audioOrco != null)
+        {
+            audioOrco.ReproducirDañoOrco();
+        }
+
         ataqueInterrumpido = ObtenerAtaqueActual();
         animaciones.SetBool("at1", false);
         animaciones.SetBool("at2", false);
@@ -295,5 +313,53 @@ public class Orco : Enemy
         if (estadoAnimacion.shortNameHash == At2Hash) return "at2";
         if (estadoAnimacion.shortNameHash == At3Hash) return "at3";
         return null;
+    }
+
+    private void ActualizarPasos(bool corriendo)
+    {
+        if (audioOrco == null)
+        {
+            return;
+        }
+
+        if (!agente.enabled || agente.velocity.sqrMagnitude <= 0.04f)
+        {
+            temporizadorPasos = 0f;
+            audioOrco.DetenerPasos();
+            return;
+        }
+
+        if (temporizadorPasos > 0f)
+        {
+            return;
+        }
+
+        if (corriendo)
+        {
+            audioOrco.ReproducirPasoCorriendoOrco();
+            temporizadorPasos = 0.3f;
+        }
+        else
+        {
+            audioOrco.ReproducirPasoCaminando();
+            temporizadorPasos = 0.5f;
+        }
+    }
+
+    private void DetenerPasos()
+    {
+        temporizadorPasos = 0f;
+        if (audioOrco != null)
+        {
+            audioOrco.DetenerPasos();
+        }
+    }
+
+    public void ReproducirImpactoPlayer()
+    {
+        if (audioOrco != null)
+        {
+            audioOrco.ReproducirImpactoPlayer();
+        }
     }
 }
