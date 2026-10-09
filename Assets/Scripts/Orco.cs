@@ -7,8 +7,9 @@ using UnityEngine.AI;
 public class Orco : Enemy
 {
     private NavMeshAgent agente;
-    private OrcoAudio audioOrco;
     private Coroutine comboAtaque;
+    private Coroutine rutinaDaño;
+    private bool muerteProcesada;
     private bool terminarCombo;
     private float temporizadorPasos;
     public Animator animaciones;
@@ -30,6 +31,10 @@ public class Orco : Enemy
         base.Awake();
         agente = GetComponent<NavMeshAgent>();
         audioOrco = GetComponent<OrcoAudio>();
+        if (animaciones == null)
+        {
+            animaciones = GetComponentInChildren<Animator>();
+        }
 
         agente.autoTraverseOffMeshLink = true;
         agente.autoRepath = true;
@@ -171,10 +176,27 @@ public class Orco : Enemy
     public override void EstadoMuerto()
     {
         base.EstadoMuerto();
+        if (muerteProcesada)
+        {
+            return;
+        }
+
+        muerteProcesada = true;
+        if (rutinaDaño != null)
+        {
+            StopCoroutine(rutinaDaño);
+            rutinaDaño = null;
+        }
         CancelarCombo();
         DetenerPasos();
         animaciones.SetBool("vivo", false);
-        agente.enabled = false;
+        animaciones.SetBool("Dead", true);
+        if (agente != null && agente.enabled && agente.isOnNavMesh)
+        {
+            agente.isStopped = true;
+            agente.ResetPath();
+            agente.velocity = Vector3.zero;
+        }
     }
 
     
@@ -260,9 +282,9 @@ public class Orco : Enemy
         animaciones.SetBool("at3", false);
     }
     
-    public void GolpeOrco(float damage)
+    public override void RecibirDaño(float damage)
     {
-        if (animaciones == null || animaciones.GetBool("orcdamage"))
+        if (animaciones == null || estado == Estados.muerto || animaciones.GetBool("orcdamage"))
         {
             return;
         }
@@ -272,11 +294,47 @@ public class Orco : Enemy
             audioOrco.ReproducirDañoOrco();
         }
 
-        ataqueInterrumpido = ObtenerAtaqueActual();
-        animaciones.SetBool("at1", false);
-        animaciones.SetBool("at2", false);
-        animaciones.SetBool("at3", false);
+        ataqueInterrumpido = null;
+        CancelarCombo();
         animaciones.SetBool("orcdamage", true);
+        animaciones.CrossFade("Base Layer.Odamage", 0.05f, 0);
+        rutinaDaño = StartCoroutine(EsperarFinDaño());
+    }
+
+    public void GolpeOrco(float damage)
+    {
+        RecibirDaño(damage);
+    }
+
+    private IEnumerator EsperarFinDaño()
+    {
+        float tiempoRestante = 3f;
+        bool dañoIniciado = false;
+
+        while (tiempoRestante > 0f)
+        {
+            AnimatorStateInfo estadoActual = animaciones.GetCurrentAnimatorStateInfo(0);
+            bool enAnimacionDaño = estadoActual.IsName("Base Layer.Odamage") || estadoActual.IsName("Odamage");
+
+            if (enAnimacionDaño)
+            {
+                dañoIniciado = true;
+                if (estadoActual.normalizedTime >= 1f)
+                {
+                    break;
+                }
+            }
+            else if (dañoIniciado)
+            {
+                break;
+            }
+
+            tiempoRestante -= Time.deltaTime;
+            yield return null;
+        }
+
+        rutinaDaño = null;
+        TerminarAnimacionDaño();
     }
 
     public void TerminarAnimacionDaño()
@@ -290,6 +348,10 @@ public class Orco : Enemy
         animaciones.SetBool("at2", ataqueInterrumpido == "at2");
         animaciones.SetBool("at3", ataqueInterrumpido == "at3");
         animaciones.SetBool("orcdamage", false);
+        if (ataqueInterrumpido == null && estado != Estados.muerto)
+        {
+            animaciones.CrossFade("Base Layer.Idle", 0.1f, 0);
+        }
         ataqueInterrumpido = null;
     }
 

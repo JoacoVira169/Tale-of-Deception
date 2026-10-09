@@ -974,6 +974,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   vidaOrco: 75
   vidaActualOrco: 0
+  eventoMorir:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 284286271}
+        m_TargetAssemblyTypeName: Enemy, Assembly-CSharp
+        m_MethodName: Morir
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &284286271
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -995,6 +1010,7 @@ MonoBehaviour:
   distancia: 0
   vivo: 1
   vidaOrco: {fileID: 284286270}
+  audioOrco: {fileID: 0}
   animaciones: {fileID: 703007070}
   "da\xF1o": 5
   CheckPoints:
@@ -1063,6 +1079,7 @@ MonoBehaviour:
   clipGolpeHachaOrco: {fileID: 8300000, guid: edb6eaaf36222f9429a9b2214ec69ad0, type: 3}
   clipImpactoPlayer: {fileID: 8300000, guid: c5dea467677cdd449a7f8190f8453783, type: 3}
   "clipDa\xF1oOrco": {fileID: 8300000, guid: b1790fe4dfa754e96a722bad2b5aaff1, type: 3}
+  "clipGru\xF1idoOrco": {fileID: 8300000, guid: 4f301b6a262a949a884cf7ec822110d7, type: 3}
 --- !u!82 &284286275
 AudioSource:
   m_ObjectHideFlags: 0
@@ -4955,6 +4972,7 @@ MonoBehaviour:
   clipGolpeHachaOrco: {fileID: 8300000, guid: edb6eaaf36222f9429a9b2214ec69ad0, type: 3}
   clipImpactoPlayer: {fileID: 8300000, guid: c5dea467677cdd449a7f8190f8453783, type: 3}
   "clipDa\xF1oOrco": {fileID: 8300000, guid: b1790fe4dfa754e96a722bad2b5aaff1, type: 3}
+  "clipGru\xF1idoOrco": {fileID: 8300000, guid: 4f301b6a262a949a884cf7ec822110d7, type: 3}
 --- !u!54 &974891660
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -4995,7 +5013,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   vidaOrco: 75
-  vidaActualOrco: 0
+  vidaActualOrco: 0.03
+  eventoMorir:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 974891662}
+        m_TargetAssemblyTypeName: Enemy, Assembly-CSharp
+        m_MethodName: Morir
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &974891662
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5017,6 +5050,7 @@ MonoBehaviour:
   distancia: 0
   vivo: 1
   vidaOrco: {fileID: 974891661}
+  audioOrco: {fileID: 0}
   animaciones: {fileID: 235422787}
   "da\xF1o": 5
   CheckPoints:
@@ -6590,6 +6624,7 @@ MonoBehaviour:
   distancia: 0
   vivo: 1
   vidaOrco: {fileID: 1504460157}
+  audioOrco: {fileID: 0}
   animaciones: {fileID: 431249680}
   "da\xF1o": 5
   CheckPoints:
@@ -6639,6 +6674,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   vidaOrco: 75
   vidaActualOrco: 0
+  eventoMorir:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1504460155}
+        m_TargetAssemblyTypeName: Enemy, Assembly-CSharp
+        m_MethodName: Morir
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!54 &1504460158
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -6683,6 +6733,7 @@ MonoBehaviour:
   clipGolpeHachaOrco: {fileID: 8300000, guid: edb6eaaf36222f9429a9b2214ec69ad0, type: 3}
   clipImpactoPlayer: {fileID: 8300000, guid: c5dea467677cdd449a7f8190f8453783, type: 3}
   "clipDa\xF1oOrco": {fileID: 8300000, guid: b1790fe4dfa754e96a722bad2b5aaff1, type: 3}
+  "clipGru\xF1idoOrco": {fileID: 8300000, guid: 4f301b6a262a949a884cf7ec822110d7, type: 3}
 --- !u!82 &1504460160
 AudioSource:
   m_ObjectHideFlags: 0
@@ -7673,6 +7724,10 @@ PrefabInstance:
     - target: {fileID: 2970891120671828392, guid: 9f1eadea3793fe54aaa8f505261f80f4, type: 3}
       propertyPath: m_Layer
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7128893045912356821, guid: 9f1eadea3793fe54aaa8f505261f80f4, type: 3}
+      propertyPath: vidaInicial
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 7809101730138727936, guid: 9f1eadea3793fe54aaa8f505261f80f4, type: 3}
       propertyPath: sword

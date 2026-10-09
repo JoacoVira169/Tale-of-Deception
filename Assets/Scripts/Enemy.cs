@@ -22,11 +22,24 @@ public class Enemy : MonoBehaviour
     public float distancia = Mathf.Infinity;
     public bool vivo = true;
     public VidaOrco vidaOrco; 
+    private Vida vidaObjetivo;
+    private Animator animacion;
+    public OrcoAudio audioOrco;
 
     public virtual void Awake()
     {
         estado = Estados.idle;
         distancia = Mathf.Infinity;
+        animacion = GetComponentInChildren<Animator>();
+        audioOrco = GetComponent<OrcoAudio>();
+        if (vidaOrco == null)
+        {
+            vidaOrco = GetComponentInChildren<VidaOrco>();
+        }
+        if (vidaOrco != null)
+        {
+            vidaOrco.eventoMorir.AddListener(Morir);
+        }
         StartCoroutine(CalcularDistancia());
     }
 
@@ -37,9 +50,56 @@ public class Enemy : MonoBehaviour
             target = Player.singelton.transform;
         }
 
+        if (target != null)
+        {
+            vidaObjetivo = target.GetComponentInParent<Vida>();
+            if (vidaObjetivo != null)
+            {
+                vidaObjetivo.eventoMorir.AddListener(AlMorirObjetivo);
+            }
+        }
+
         if (target == null)
         {
             Debug.LogWarning("Enemy has no target assigned.", this);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (vidaOrco != null)
+        {
+            vidaOrco.eventoMorir.RemoveListener(Morir);
+        }
+        if (vidaObjetivo != null)
+        {
+            vidaObjetivo.eventoMorir.RemoveListener(AlMorirObjetivo);
+        }
+    }
+
+    public virtual void Morir()
+    {
+        if (estado == Estados.muerto)
+        {
+            return;
+        }
+
+        CambiarEstado(Estados.muerto);
+    }
+
+    protected virtual void AlMorirObjetivo()
+    {
+        target = null;
+        distancia = Mathf.Infinity;
+        if (estado != Estados.muerto)
+        {
+            CambiarEstado(Estados.idle);
+            animacion.SetBool("Idle", false);
+            animacion.SetTrigger("Win");
+            if (audioOrco != null)
+            {
+                audioOrco.IniciarGruñido();
+            }
         }
     }
 
@@ -50,6 +110,12 @@ public class Enemy : MonoBehaviour
 
     private void CheckEstado()
     {
+        if (estado == Estados.muerto)
+        {
+            EstadoMuerto();
+            return;
+        }
+
         if (target == null && estado != Estados.muerto)
         {
             return;
@@ -106,6 +172,9 @@ public class Enemy : MonoBehaviour
     {
     }
     public virtual void EstadoAtacar()
+    {
+    }
+    public virtual void RecibirDaño(float damage)
     {
     }
     public virtual void EstadoMuerto()

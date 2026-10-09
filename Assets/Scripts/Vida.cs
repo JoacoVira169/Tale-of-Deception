@@ -14,6 +14,8 @@ public class Vida : MonoBehaviour
     {
        anim = GetComponentInChildren<Animator>();
        vidaActual = vidaInicial; 
+       eventoMorir.AddListener(Muerte);
+       eventoMorir.AddListener(DetenerMovimiento);
     }
 
     public void CausarDaño(float cuanto)
@@ -36,9 +38,49 @@ public class Vida : MonoBehaviour
         );
         if (vidaActual == 0)
         {
-            Debug.Log("Muerto!!! ->" + gameObject.name);
             eventoMorir?.Invoke();
         }
     }
 
-}    
+    public void DetenerMovimiento()
+    {
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        Rigidbody2D rb2D = GetComponent<Rigidbody2D>();
+        if (rb2D != null)
+        {
+            rb2D.velocity = Vector2.zero;
+            rb2D.angularVelocity = 0f;
+        }
+    }
+
+    public void Muerte()
+    {
+        if (anim == null) return;
+
+        anim.SetBool("Walk", false);
+        anim.SetBool("Run", false);
+        anim.SetBool("Jump", false);
+        anim.SetBool("Crouch", false);
+        anim.SetBool("Block", false);
+        anim.SetBool("Damage", false);
+        anim.SetBool("hit1", false);
+        anim.SetBool("hit2", false);
+        anim.SetBool("hit3", false);
+
+        anim.ResetTrigger("Dash");
+        anim.SetBool("Die", true);
+
+        Player controlador = GetComponent<Player>();
+        if (controlador != null)
+        {
+            controlador.enabled = false;
+        }
+    }
+
+}

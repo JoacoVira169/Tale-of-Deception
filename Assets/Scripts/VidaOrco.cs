@@ -1,11 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class VidaOrco : MonoBehaviour
 {
     public float vidaOrco = 75f;
     [SerializeField] public float vidaActualOrco;
+    public UnityEvent eventoMorir = new UnityEvent();
     
     void Start()
     {
@@ -19,15 +21,16 @@ public class VidaOrco : MonoBehaviour
         }
 
         vidaActualOrco = Mathf.Max(0, vidaActualOrco - damage);
-        gameObject.SendMessage(
-            "GolpeOrco",
-            damage,
-            SendMessageOptions.DontRequireReceiver
-        );
+        Enemy enemigo = GetComponentInParent<Enemy>();
+        if (enemigo != null)
+        {
+            enemigo.RecibirDaño(damage);
+        }
+
         if (vidaActualOrco == 0)
         {
             Debug.Log("Muerto!!! ->" + gameObject.name);
-            //eventoMorir?.Invoke();
+            eventoMorir.Invoke();
         }
     }
 }

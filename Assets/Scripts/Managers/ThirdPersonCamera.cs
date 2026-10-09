@@ -9,11 +9,36 @@ public class ThirdPersonCamera : MonoBehaviour
     int lookUp = -15;
     [SerializeField][Range(15, 25)]
     int lookDown = 20;
+    private Vida vidaJugador;
 
     private void Start() 
     {
         Cursor.lockState = CursorLockMode.Locked; 
+        if (player != null)
+        {
+            vidaJugador = player.GetComponent<Vida>();
+            if (vidaJugador != null)
+            {
+                vidaJugador.eventoMorir.AddListener(DetenerRotacion);
+            }
+        }
     }
+
+    private void OnDestroy()
+    {
+        if (vidaJugador != null)
+        {
+            vidaJugador.eventoMorir.RemoveListener(DetenerRotacion);
+        }
+    }
+
+    private void DetenerRotacion()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        enabled = false;
+    }
+
     void Update()
     {     
         float rotateX = Input.GetAxis("Mouse X") * mouseSense;

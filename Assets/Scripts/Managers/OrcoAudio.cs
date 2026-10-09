@@ -10,11 +10,14 @@ public class OrcoAudio : MonoBehaviour
     public AudioClip clipGolpeHachaOrco;
     public AudioClip clipImpactoPlayer;
     public AudioClip clipDañoOrco;
+    public AudioClip clipGruñidoOrco;
 
     private AudioSource altavoz;
     private AudioSource altavozEfectos;
 
-     void Awake()
+    private Coroutine rutinaGruñido;
+
+    void Awake()
     {
         altavoz = GetComponent<AudioSource>();
         altavoz.loop = false;
@@ -83,6 +86,30 @@ public class OrcoAudio : MonoBehaviour
         if (clip != null)
         {
             altavozEfectos.PlayOneShot(clip);
+        }
+    }
+
+    public void IniciarGruñido()
+    {
+        if (rutinaGruñido == null)
+            rutinaGruñido = StartCoroutine(GruñirCadaDosSegundos());
+    }
+
+    public void DetenerGruñido()
+    {
+        if (rutinaGruñido != null)
+        {
+            StopCoroutine(rutinaGruñido);
+            rutinaGruñido = null;
+        }
+    }
+
+    private IEnumerator GruñirCadaDosSegundos()
+    {
+        while (true)
+        {
+            ReproducirEfecto(clipGruñidoOrco);
+            yield return new WaitForSeconds(2f);
         }
     }
 }
