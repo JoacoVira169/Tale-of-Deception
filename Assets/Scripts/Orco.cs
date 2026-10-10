@@ -11,6 +11,8 @@ public class Orco : Enemy
     private Coroutine rutinaDaño;
     private bool muerteProcesada;
     private bool terminarCombo;
+    [SerializeField, Min(0f)] private float cooldownEntreCombos = 2f;
+    private float cooldownComboRestante;
     private float temporizadorPasos;
     public Animator animaciones;
     public float daño = 20;
@@ -53,6 +55,7 @@ public class Orco : Enemy
     {
         animaciones.SetFloat("distancia", distancia);
         temporizadorPasos -= Time.deltaTime;
+        cooldownComboRestante = Mathf.Max(0f, cooldownComboRestante - Time.deltaTime);
     }
 
     public override void EstadoIdle()
@@ -167,7 +170,7 @@ public class Orco : Enemy
         agente.SetDestination(transform.position);
         transform.LookAt(target, Vector3.up);
 
-        if (comboAtaque == null)
+        if (comboAtaque == null && cooldownComboRestante <= 0f)
         {
             comboAtaque = StartCoroutine(EjecutarCombo());
         }
@@ -203,19 +206,28 @@ public class Orco : Enemy
     private IEnumerator EjecutarCombo()
     {
         terminarCombo = false;
+        bool comboCompletado = false;
 
-        while (vivo && !terminarCombo && estado == Estados.atacar && distancia <= distanciaAtacar)
+        if (PuedeContinuarCombo())
         {
             yield return EjecutarAtaque("at1");
-            if (!PuedeContinuarCombo()) break;
-
-            yield return EjecutarAtaque("at2");
-            if (!PuedeContinuarCombo()) break;
-
-            yield return EjecutarAtaque("at3");
+            if (PuedeContinuarCombo())
+            {
+                yield return EjecutarAtaque("at2");
+                if (PuedeContinuarCombo())
+                {
+                    yield return EjecutarAtaque("at3");
+                    comboCompletado = true;
+                }
+            }
         }
 
         LimpiarAtaques();
+        if (comboCompletado)
+        {
+            cooldownComboRestante = cooldownEntreCombos;
+        }
+
         comboAtaque = null;
         terminarCombo = false;
     }
@@ -259,7 +271,7 @@ public class Orco : Enemy
 
     private bool PuedeContinuarCombo()
     {
-        return vivo && estado == Estados.atacar && distancia <= distanciaAtacar;
+        return vivo && !terminarCombo && estado == Estados.atacar && distancia <= distanciaAtacar;
     }
 
     private void CancelarCombo()

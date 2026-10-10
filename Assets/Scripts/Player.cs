@@ -8,6 +8,7 @@ public class Player : MonoBehaviour
      [SerializeField] float movementSpeed = 8f;
      float currentSpeed;
      Vector3 direction;
+     bool estabaEnAtaque;
      [SerializeField] float shiftSpeed = 20f;
      [SerializeField] float jumpForce = 9f;
      bool isGrounded = true;
@@ -20,6 +21,7 @@ public class Player : MonoBehaviour
      bool isStunned;
      public int noOfClicks;
      PlayerAudio playerAudio;
+     Coroutine rutinaDaño;
      private float temporizadorPasos = 0f;
      public float tiempoEntrePasosCaminando = 0.5f;
      public float tiempoEntrePasosCorriendo = 0.3f;
@@ -79,8 +81,29 @@ public class Player : MonoBehaviour
           }
 
           AnimatorStateInfo attackState = anim.GetCurrentAnimatorStateInfo(0);
-          bool isAttacking = anim.GetBool("hit1") || anim.GetBool("hit2") || anim.GetBool("hit3") ||
-                             attackState.IsName("hit1") || attackState.IsName("hit2") || attackState.IsName("hit3");
+          bool isAttackState = attackState.IsName("hit1") || attackState.IsName("hit2") || attackState.IsName("hit3");
+          if (anim.IsInTransition(0))
+          {
+               AnimatorStateInfo nextState = anim.GetNextAnimatorStateInfo(0);
+               isAttackState = isAttackState || nextState.IsName("hit1") || nextState.IsName("hit2") || nextState.IsName("hit3");
+          }
+
+          if (estabaEnAtaque && !isAttackState)
+          {
+               anim.SetBool("hit1", false);
+               anim.SetBool("hit2", false);
+               anim.SetBool("hit3", false);
+               noOfClicks = 0;
+
+               Fighter fighter = GetComponentInChildren<Fighter>();
+               if (fighter != null)
+               {
+                    fighter.noOfClicks = 0;
+               }
+          }
+
+          estabaEnAtaque = isAttackState;
+          bool isAttacking = anim.GetBool("hit1") || anim.GetBool("hit2") || anim.GetBool("hit3") || isAttackState;
           bool actionLocksMovement = isStunned || isAttacking || anim.GetBool("Block") || anim.GetBool("Damage");
 
           if (actionLocksMovement)
@@ -215,13 +238,40 @@ public class Player : MonoBehaviour
                }
 
                anim.SetBool("Damage", true);
-               StartCoroutine(EsperarYTerminarDaño());
+               if (rutinaDaño == null)
+               {
+                    rutinaDaño = StartCoroutine(EsperarYTerminarDaño());
+               }
           }
      }
      private IEnumerator EsperarYTerminarDaño()
      {
-          yield return new WaitForSeconds(1.5f);
+          const float momentoRecuperacion = 0.65f;
+          while (anim != null)
+          {
+               AnimatorStateInfo estadoDaño = anim.GetCurrentAnimatorStateInfo(0);
+               bool estaEnDaño = estadoDaño.IsName("Damage") || estadoDaño.IsName("Damage1");
+
+               if (anim.IsInTransition(0))
+               {
+                    AnimatorStateInfo siguienteEstado = anim.GetNextAnimatorStateInfo(0);
+                    if (siguienteEstado.IsName("Damage") || siguienteEstado.IsName("Damage1"))
+                    {
+                         estadoDaño = siguienteEstado;
+                         estaEnDaño = true;
+                    }
+               }
+
+               if (estaEnDaño && estadoDaño.normalizedTime >= momentoRecuperacion)
+               {
+                    break;
+               }
+
+               yield return null;
+          }
+
           TerminarAnimacionDaño();
+          rutinaDaño = null;
      }
 
 
@@ -246,7 +296,8 @@ public class Player : MonoBehaviour
 
           else if (anim.GetBool("Damage") == true)
           {
-               StartCoroutine(EsperarYTerminarDaño());
+               anim.SetBool("Block", true);
+               return;
           }
           else if (anim.GetBool("hit1") == true || anim.GetBool("hit2") == true || anim.GetBool("hit3") == true)
           {
